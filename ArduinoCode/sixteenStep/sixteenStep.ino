@@ -15,6 +15,8 @@ int history[numChannels][hLength];
 
 unsigned long debounceTime[numChannels];
 int pointer = 0;
+int hitCount = 0;
+bool channelActive[numChannels];
 
 void setup() {
   pinMode(s0, OUTPUT);
@@ -29,11 +31,13 @@ void setup() {
   // initialize serial communications at 9600 bps:
   Serial.begin(9600);
 
+  for (int i = 0; i < numChannels; i++) {
+    channelActive[i] = true;
+  }
 
 }
 
 void loop() {
-
   for (int i = 0; i < numChannels; i++) {
     // read the analog in value:
     channelValues[i] = readMux(i); // analogRead(analogPins[i]);
@@ -42,42 +46,56 @@ void loop() {
     int largestDelta = 0;
     // if not waiting on this channel
 
-    if ((unsigned long)millis() > debounceTime[i]) {
+    if (channelActive[i] && ((unsigned long)millis() > debounceTime[i])) {
 
       //    if (largestDelta > 5 ) {
-      if (channelValues[i] > 5 ) {
+      if (channelValues[i] > 15 ) {
+        Serial.print(" mils " );
+        Serial.print(millis());
+        Serial.print(" dbounc " );
+        Serial.print(debounceTime[i]);
+        // how soon has it been?
+        if ((unsigned long)millis() - debounceTime[i] < 50) {
+          // if its been less than n ms since the last hit
+          // count it as a double
+          hitCount ++;
+          // if this gets above the threshold
+          // disable this channel
+          Serial.print("double: ");
+          Serial.print(hitCount);
+          if (hitCount > 200) {
+            channelActive[i] = false;
+            Serial.print("setting inactive");
+          }
+        }
+       else if ((unsigned long)millis() - debounceTime[i] > 80) {
+          hitCount = 0;
+        }
+        else if ((unsigned long)millis() - debounceTime[i] > 75) {
+          hitCount -= 10;
+        }
+        else {
+          hitCount--;
+        }
+
+
+        if (hitCount < 0) {
+          hitCount = 0;
+        }
         int lev = (int)map(channelValues[i], 5, 50, 40, 127);
         if (lev > 127) { // clip
           lev = 127;
         }
-
         // Note On messages when each button is pressed
         usbMIDI.sendNoteOn(60 + i, lev, 0);  // 60 = C4, vel, channel
-
         // got a hit, print it:
+        Serial.print(" channel" );
         Serial.print(i);
-        Serial.print(" delta: ");
-        Serial.print(largestDelta);
         Serial.print(" channelValue " );
         Serial.print(channelValues[i]);
-        Serial.print(" velocity: ");
-        Serial.print(lev);
-        Serial.print(" mils " );
-        Serial.print(millis());
-        Serial.print(" dbounc " );
-        Serial.print(debounceTime[i]);
-        
-        
-        debounceTime[i] = millis() + 250;
-        Serial.print(" mils " );
-        Serial.print(millis());
-        Serial.print(" dbounc " );
-        Serial.print(debounceTime[i]);
-        
         Serial.println();
-        
 
-
+        debounceTime[i] = millis() + 50;
       }
     }
   }
