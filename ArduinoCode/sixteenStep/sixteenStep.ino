@@ -30,6 +30,7 @@ void setup() {
   digitalWrite(s3, LOW);
   // initialize serial communications at 9600 bps:
   Serial.begin(9600);
+  Serial.println("ok for takeoff");
 
   for (int i = 0; i < numChannels; i++) {
     channelActive[i] = true;
@@ -49,11 +50,8 @@ void loop() {
     if (channelActive[i] && ((unsigned long)millis() > debounceTime[i])) {
 
       //    if (largestDelta > 5 ) {
-      if (channelValues[i] > 15 ) {
-        Serial.print(" mils " );
-        Serial.print(millis());
-        Serial.print(" dbounc " );
-        Serial.print(debounceTime[i]);
+      if (channelValues[i] > 8 ) {
+
         // how soon has it been?
         if ((unsigned long)millis() - debounceTime[i] < 50) {
           // if its been less than n ms since the last hit
@@ -65,7 +63,8 @@ void loop() {
           Serial.print(hitCount);
           if (hitCount > 200) {
             channelActive[i] = false;
-            Serial.print("setting inactive");
+            Serial.print("setting inactive: ");
+            Serial.println(i);
           }
         }
        else if ((unsigned long)millis() - debounceTime[i] > 80) {
@@ -91,7 +90,7 @@ void loop() {
         // got a hit, print it:
         Serial.print(" channel" );
         Serial.print(i);
-        Serial.print(" channelValue " );
+       Serial.print(" channelValue " );
         Serial.print(channelValues[i]);
         Serial.println();
 
