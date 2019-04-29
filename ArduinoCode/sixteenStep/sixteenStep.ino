@@ -48,7 +48,7 @@ void loop() {
     // if not waiting on this channel
 
     if (channelActive[i] && ((unsigned long)millis() > debounceTime[i])) {
-
+      
       //    if (largestDelta > 5 ) {
       if (channelValues[i] > 8 ) {
 
@@ -88,7 +88,7 @@ void loop() {
         // Note On messages when each button is pressed
         usbMIDI.sendNoteOn(60 + i, lev, 0);  // 60 = C4, vel, channel
         // got a hit, print it:
-        Serial.print(" channel" );
+        Serial.print(" channel " );
         Serial.print(i);
        Serial.print(" channelValue " );
         Serial.print(channelValues[i]);
@@ -98,6 +98,7 @@ void loop() {
       }
     }
   }
+//  delay(1000);
   pointer++;
   pointer %= hLength;
 
@@ -139,7 +140,7 @@ int readMux(int channel) {
 
   //read the value at the SIG pin
   int val = analogRead(SIG_pin);
-
+//  Serial.print("chan: "); Serial.print(channel); Serial.print(" value: "); Serial.println(val);
   //return the value
   return val;
 }
